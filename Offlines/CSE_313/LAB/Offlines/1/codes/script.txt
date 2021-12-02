@@ -28,18 +28,30 @@ traverse()
             traverse "$f"
         elif [ -f "$f" ]; then
             new_folder=`echo "$f" | cut -d '.' -f 2-`
-            new_directory="$directory/new_folder/"
-            current_directory="$directory/$f"
-            echo "current directory: $current_directory"
-            
-            
-            if [ -d new_directory ]; then
-                cp $current_directory $new_directory
+
+            if InIgnore $new_folder; then
+                ignore_count=`expr $ignore_count+1`
             else
-                mkdir $new_directory
-                cp $current_directory $new_directory
-                touch "$new_directory/desc_$new_folder.txt"
-            fi
+
+                #if (($new_folder == "")); then
+                 #   new_folder="others"
+                #fi
+
+                new_directory="$output_directory/$new_folder/"
+                current_directory="$directory/$f"
+                echo "current directory: $current_directory"
+                file_directory="$new_directory/desc_$new_folder.txt"
+            
+                if [ -d $new_directory ]; then
+                    cp $current_directory $new_directory
+                    echo $current_directory >> $file_directory 
+                else
+                    mkdir $new_directory
+                    cp $current_directory $new_directory
+                    touch "$new_directory/desc_$new_folder.txt"
+                    echo $current_directory > $file_directory
+                fi
+            fi    
         fi
     
     done
@@ -50,6 +62,7 @@ traverse()
 filename="nothing"
 directory="nothing"
 invalid_filename=1
+ignore_count=0
 
 if (($# == 0)); then
     directory=`pwd`
@@ -113,7 +126,10 @@ echo "now you shall perish"
 
 #create output directory:
 
-output_directory="$directory/output_directory/"
+cd $directory
+cd ..
+output_directory=`pwd`
+output_directory="$output_directory/output_directory/"
 mkdir $output_directory
 
 #call traverse function:
