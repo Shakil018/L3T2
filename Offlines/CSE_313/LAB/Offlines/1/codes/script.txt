@@ -31,31 +31,31 @@ traverse()
                 new_folder=`echo "$f" | cut -d '.' -f 2-`
             else
                 new_folder="others"
-            fi
-            
+            fi  
 
             if InIgnore $new_folder; then
                 ignore_count=$((ignore_count+1))
             else
-                echo "$new_folder not in ignore"
+                #echo "$new_folder not in ignore"
 
                 new_directory="$output_directory/$new_folder/"
                 current_directory=`pwd`
                 current_directory="$current_directory/$f"
                 #echo "current directory: $current_directory"
                 #echo "new directory: $new_directory"
-                file_directory="$new_directory/desc_$new_folder.txt"
+                desc_directory="$new_directory/desc_$new_folder.txt"
 
                 if [ -d $new_directory ]; then
-                    cp $current_directory $new_directory
-                    echo $current_directory >> $file_directory 
-                    echo "if er moddhe"
+                    existing_directory="$new_directory/$f"
+                    if [ ! -f $existing_directory ]; then
+                        cp $current_directory $new_directory
+                        echo $current_directory >> $desc_directory 
+                    fi
                 else
                     mkdir $new_directory
                     cp $current_directory $new_directory
                     touch "$new_directory/desc_$new_folder.txt"
-                    echo $current_directory > $file_directory
-                    echo "else er moddhe"
+                    echo $current_directory > $desc_directory
                 fi
             fi    
         fi
@@ -69,48 +69,47 @@ outputCsv()
 {
     cd "$1"
     cd ..
-    touch "output.csv"
-    #chmod u+x "output.csv"
-    #install -b -m 755 /dev/null newfile
-    #chmod 666 output.csv
+    touch output.csv
+    chmod 666 output.csv
     outCsv=`pwd`
-    outCsv= "$outCsv/output.csv"
+    outCsv="$outCsv/output.csv"
+    echo "" > output.csv
     #install -m 666 /dev/null outCsv
     
-    #chmod 666 outCsv>>!#:2
-
-    echo "noice" > output.csv
     outString=""
     
-    cd "$2"
-
-    for f in `ls`
+    cd $2
+    #lineNo=0
+    for f in *
     do
-        echo "$f"
+        #lineNo=$((lineNo+1))
         if [ -d $f ]; then
             cd $f
             cnt=-1
             for ff in `ls`
             do
-                echo "$ff"
                 cnt=$((cnt+1))
             done
-            echo "$f, $cnt" >> outCsv
-            outString="$outString
-            $f, $cnt"
+            #sed -i "$lineNo c\\$f, cnt" outCsv
+            outString="${outString}$f, $cnt
+            "
             cd ..
         fi
     done
 
-    echo "ignored, $3" >> outCsv
-    outString="$outString 
-    ignored, $3"
-    echo $outString
-    echo "the file: "
-    cat outCsv | echo 
-    
+    #lineNo=$((lineNo+1))
+    #sed -i "$lineNo c\\$f, cnt" outCsv
+
+    outString="${outString}ignored, $3
+    "
+
+    cd $output_directory
+    cd ..
+    echo $outString > output.csv
+    cat output.csv
 
 }
+
 
 #main code 
 
@@ -153,7 +152,7 @@ else
     directory=`pwd`
 fi
 
-
+# input filename if not given
 
 while (($invalid_filename == 0))
 do
@@ -181,7 +180,6 @@ ARRAY=( `cat $filename` )
 #done < $filename
 
 echo ${ARRAY[*]}
-echo "now you shall perish"
 
 #create output directory:
 
@@ -192,11 +190,12 @@ output_directory="$output_directory/output_directory"
 
 
 if [ -d output_directory ]; then
-    echo "just chillin"
-else
-    mkdir $output_directory
-
+    rm -r $output_directory
+    echo "cleared previous output directory and created a new one"
 fi
+
+mkdir $output_directory
+
 
 
 #call traverse function:
