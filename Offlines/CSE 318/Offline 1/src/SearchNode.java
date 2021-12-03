@@ -47,7 +47,14 @@ class SearchNode {
         {
             for(int j = 0; j < dimension; j++)
             {
-                if(this.board[i][j] == "*") continue;
+                if(this.board[i][j].equalsIgnoreCase("*")){
+                    if(i != (dimension-1) || j != (dimension-1)){
+                        return false;
+                    }
+                    else{
+                        continue;
+                    }
+                }
 
                 int value = Integer.parseInt(this.board[i][j]);
                 if(value != (i*dimension + j + 1)){
@@ -114,118 +121,11 @@ class SearchNode {
 
     }
 
-    public int hamming(){
-
-        int heuristic = 0;
-        for(int i = 0; i < dimension; i++){
-            for(int j = 0; j < dimension; j++){
-                if(this.board[i][j].equalsIgnoreCase("*")) continue;
-
-                int value = Integer.parseInt(this.board[i][j]);
-                if( (i*dimension+j+1) != value){
-                    heuristic++;
-                }
-            }
-        }
-
-        return heuristic;
-
-    }
-
-    public int manhattan(){
-
-        int heuristic = 0;
-        for(int i = 0; i < dimension; i++){
-            for(int j = 0; j < dimension; j++){
-
-                if(this.board[i][j] == "*") continue;
-
-                int value = Integer.parseInt(this.board[i][j]);
-                int row, col;
-                if(value % dimension == 0){
-                    row = (int) Math.floor((value-1)/dimension) + 1;
-                    col = (value-1) % dimension + 1;
-                }
-                else{
-                    row = (int) Math.floor(value/dimension) + 1;
-                    col = value % dimension;
-                }
-
-                heuristic += Math.abs(row - i);
-                heuristic += Math.abs(col - j);
-
-            }
-        }
-
-        return heuristic;
-    }
-
-    public int linearConflict(){
-
-        int manhattanDistance = manhattan();
-        int linear = 0;
-
-        for(int i = 0; i < dimension; i++){
-            for(int j = 0; j < dimension; j++){
-                if(this.board[i][j] == "*") continue;
-
-                int value1 = Integer.parseInt(this.board[i][j]);
-                for(int k = j + 1; k < dimension; k++){
-                    if(this.board[i][k] == "*") continue;
-
-                    int value2 = Integer.parseInt(this.board[i][k]);
-
-                    int row1, row2;
-                    if(value1 % dimension == 0){
-                        row1 = (int) Math.floor((value1-1)/dimension) + 1;
-                    }
-                    else{
-                        row1 = (int) Math.floor(value1/dimension) + 1;
-                    }
-                    if(value2 % dimension == 0){
-                        row2 = (int) Math.floor((value2-1)/dimension) + 1;
-                    }
-                    else{
-                        row2 = (int) Math.floor(value2/dimension) + 1;
-                    }
-
-                    if(row1 == i && row2 == i){
-                        if(value2 < value1){
-                            linear++;
-                        }
-                    }
-                }
-            }
-        }
-
-        return (manhattanDistance + linear*2);
-
-    }
-
-
-    public int getCost(String heuristicName){
-
-        if(heuristicName.equalsIgnoreCase("hamming")){
-
-            return this.moves + hamming();
-        }
-        else if(heuristicName.equalsIgnoreCase("manhattan")) {
-            return this.moves + manhattan();
-        }
-        else if(heuristicName.equalsIgnoreCase("linear")){
-
-            return this.moves + linearConflict();
-        }
-        else{
-            return 0;
-        }
-    }
-
     public String getBlankPosition(){
         int row = -1, col = -1;
         for(int i = 0; i < dimension; i++){
             for(int j = 0; j < dimension; j++){
-                if(this.board[i][j] == "*"){
+                if(this.board[i][j].equalsIgnoreCase("*")){
                     row = i;
                     col = j;
                     break;
@@ -236,17 +136,46 @@ class SearchNode {
         return row + "#" + col;
     }
 
+
+    public int getCost(String heuristicName){
+
+        if(heuristicName.equalsIgnoreCase("hamming")){
+
+            return this.moves + AStarSearch.hamming(this);
+        }
+        else if(heuristicName.equalsIgnoreCase("manhattan")) {
+            return this.moves + AStarSearch.manhattan(this);
+        }
+        else if(heuristicName.equalsIgnoreCase("linear")){
+
+            return this.moves + AStarSearch.linearConflict(this);
+        }
+        else{
+            return 0;
+        }
+    }
+
+
+
     public SearchNode getNeighbour(String side){
 
         SearchNode newNode;
-        String[][] newBoard = this.board;
+        String[][] newBoard = new String[dimension][dimension];
+
+        for(int i = 0; i < dimension; i++){
+            for(int j = 0; j < dimension; j++){
+                newBoard[i][j] = this.board[i][j];
+            }
+        }
 
         String[] rowCol = getBlankPosition().split("#");
         int row = Integer.parseInt(rowCol[0]);
         int col = Integer.parseInt(rowCol[1]);
 
         if(side.equalsIgnoreCase("left")){
+            //System.out.println("col: " + col);
             if(col == 0){
+                //System.out.println("inside if");
                 return null;
             }
             newBoard[row][col] = newBoard[row][col - 1];
@@ -281,5 +210,15 @@ class SearchNode {
 
         newNode = new SearchNode(newBoard, 0, null);
         return newNode;
+    }
+
+    public void printNode(){
+        for(int i = 0; i < SearchNode.dimension; i++){
+            System.out.printf("| ");
+            for(int j = 0; j < SearchNode.dimension; j++){
+                System.out.printf(this.board[i][j] + " | ");
+            }
+            System.out.println();
+        }
     }
 }

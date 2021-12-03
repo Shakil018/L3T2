@@ -6,6 +6,7 @@ public class Demo {
 
         Scanner scanner = new Scanner(System.in);
 
+        System.out.println("Insert initial board, * for blank");
         System.out.println("input size of the board: ");
         int dimension = Integer.parseInt(scanner.nextLine());
         SearchNode.dimension = dimension;
@@ -21,16 +22,32 @@ public class Demo {
 
 
         if(initial.isSolvable()){
-            System.out.println("It is solvable");
-            System.out.println("Enter heuristic name: ");
+            System.out.println("solvability: SOLVABLE");
 
-            String heuristicName = scanner.nextLine();
+//            String heuristicName = scanner.nextLine();
 
+            System.out.println("##########################################");
+            System.out.println("HAMMING: ");
+            System.out.println("##########################################");
             AStarSearch aStarSearch = new AStarSearch();
-            aStarSearch.Algorithm(initial, heuristicName);
+            aStarSearch.Algorithm(initial, "hamming");
+
+            System.out.println("##########################################");
+            System.out.println("Manhattan: ");
+            System.out.println("##########################################");
+            aStarSearch = new AStarSearch();
+            aStarSearch.Algorithm(initial, "manhattan");
+
+            System.out.println("##########################################");
+            System.out.println("Linear conflict: ");
+            System.out.println("##########################################");
+            aStarSearch = new AStarSearch();
+            aStarSearch.Algorithm(initial, "linear");
+
+
         }
         else{
-            System.out.println("Not solvable");
+            System.out.println("solvability: NOT SOLVABLE");
         }
 
     }
